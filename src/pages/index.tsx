@@ -8,9 +8,9 @@ export default function HomePage() {
   return (
     <>
       <Head>
-        <title>Highveld Client Portal</title>
+        <title>Sign In | Highveld Advisory</title>
         <meta
-          content="Secure client access for documents, requests, and account services."
+          content="Secure client access for accounting, tax, payroll, compliance, and advisory services."
           name="description"
         />
       </Head>
