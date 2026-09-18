@@ -1,4 +1,7 @@
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
+import { useAuth } from '@clerk/nextjs'
+import { useRouter } from 'next/router'
 
 type AuthLayoutProps = {
   form: ReactNode
@@ -6,13 +9,26 @@ type AuthLayoutProps = {
 }
 
 export function AuthLayout({ form, marketing }: AuthLayoutProps) {
+  const router = useRouter()
+  const { isLoaded, isSignedIn } = useAuth()
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      void router.replace('/dashboard')
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  if (!isLoaded || isSignedIn) {
+    return <main className="grid min-h-screen place-items-center bg-white" />
+  }
+
   return (
-    <main className="flex min-h-screen w-full flex-col bg-white lg:flex-row">
-      <section className="flex min-h-64 w-full bg-white lg:min-h-screen lg:w-[56%]">
+    <main className="grid min-h-screen grid-cols-1 bg-white lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)]">
+      <section className="grid min-h-56 bg-brand-50 sm:min-h-72 lg:min-h-screen">
         {marketing}
       </section>
-      <section className="flex w-full flex-1 items-center justify-center bg-white px-6 py-10 sm:px-10 lg:min-h-screen lg:w-[44%] lg:px-12 xl:px-16 2xl:px-24">
-        <div className="flex w-full max-w-[420px] flex-col">{form}</div>
+      <section className="grid bg-white px-5 py-8 sm:px-8 sm:py-10 lg:min-h-screen lg:place-items-center lg:px-12 xl:px-16 2xl:px-24">
+        <div className="grid w-full max-w-[440px] content-start">{form}</div>
       </section>
     </main>
   )
