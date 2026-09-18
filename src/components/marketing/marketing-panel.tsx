@@ -5,13 +5,13 @@ const imageUrl =
 
 export function MarketingPanel() {
   return (
-    <div className="relative flex min-h-64 w-full overflow-hidden bg-brand-50 lg:min-h-screen">
+    <div className="relative grid min-h-56 w-full overflow-hidden bg-brand-50 sm:min-h-72 lg:min-h-screen">
       <Image
         alt="Corporate building in Johannesburg beneath a clear blue sky"
         className="object-cover object-center"
         fill
         priority
-        sizes="(min-width: 1024px) 56vw, 100vw"
+        sizes="(min-width: 1024px) 52vw, 100vw"
         src={imageUrl}
       />
     </div>
