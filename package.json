@@ -21,7 +21,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-redux": "9.3.0",
-    "resend": "6.28.1"
+    "resend": "6.28.1",
+    "@clerk/backend": "3.18.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",
