@@ -7,7 +7,9 @@ type Credentials = {
   password: string
 }
 
-type LoginStep = 'credentials' | 'device-trust'
+type LoginStep = 'credentials' | 'device-trust' | 'mfa'
+
+type MfaStrategy = 'backup_code' | 'totp'
 
 type LoginAlert = {
   message: string
@@ -18,6 +20,7 @@ export function useLogin() {
   const router = useRouter()
   const { errors, fetchStatus, signIn } = useSignIn()
   const [alert, setAlert] = useState<LoginAlert | null>(null)
+  const [mfaStrategy, setMfaStrategy] = useState<MfaStrategy>('totp')
   const [step, setStep] = useState<LoginStep>('credentials')
 
   const finalizeSignIn = useCallback(async () => {
@@ -26,7 +29,7 @@ export function useLogin() {
         if (session?.currentTask) {
           setAlert({
             title: 'Account action required',
-            message: 'Your account has an outstanding security task. Complete it before continuing to the portal.',
+            message: 'Your account has an outstanding security task. Complete it before continuing.',
           })
           return
         }
@@ -55,7 +58,7 @@ export function useLogin() {
       if (error) {
         setAlert({
           title: 'Sign-in failed',
-          message: 'We could not sign you in. Check your details and try again.',
+          message: error.longMessage ?? error.message ?? 'Check your details and try again.',
         })
         return
       }
@@ -71,25 +74,45 @@ export function useLogin() {
         if (!emailFactor) {
           setAlert({
             title: 'Verification unavailable',
-            message: 'This account requires an additional verification method that is not enabled in this login screen.',
+            message: 'This account requires an additional verification method.',
           })
           return
         }
 
-        await signIn.mfa.sendEmailCode()
+        const verification = await signIn.mfa.sendEmailCode()
+
+        if (verification.error) {
+          setAlert({
+            title: 'Code not sent',
+            message: verification.error.longMessage ?? verification.error.message,
+          })
+          return
+        }
+
         setStep('device-trust')
         setAlert({
           title: 'Verification code sent',
-          message: 'Enter the code sent to your verified email address to finish signing in.',
+          message: 'Enter the code sent to your verified email address.',
         })
         return
       }
 
       if (signIn.status === 'needs_second_factor') {
-        setAlert({
-          title: 'Additional verification required',
-          message: 'This account uses multi-factor authentication. Add the factor your Clerk application requires before enabling this login flow for that account.',
-        })
+        const supportsTotp = signIn.supportedSecondFactors.some((factor) => factor.strategy === 'totp')
+        const supportsBackupCode = signIn.supportedSecondFactors.some(
+          (factor) => factor.strategy === 'backup_code',
+        )
+
+        if (!supportsTotp && !supportsBackupCode) {
+          setAlert({
+            title: 'Unsupported second factor',
+            message: 'This account requires a second-factor method that is not enabled in this portal.',
+          })
+          return
+        }
+
+        setMfaStrategy(supportsTotp ? 'totp' : 'backup_code')
+        setStep('mfa')
         return
       }
 
@@ -109,31 +132,51 @@ export function useLogin() {
       if (error) {
         setAlert({
           title: 'Invalid verification code',
-          message: 'The code could not be verified. Check it and try again.',
+          message: error.longMessage ?? error.message ?? 'Check the code and try again.',
         })
         return
       }
 
       if (signIn.status === 'complete') {
         await finalizeSignIn()
-        return
       }
-
-      setAlert({
-        title: 'Verification incomplete',
-        message: 'Your account still needs another verification step before access can be granted.',
-      })
     },
     [finalizeSignIn, signIn],
   )
 
+  const verifyMfa = useCallback(
+    async (code: string) => {
+      setAlert(null)
+
+      const result =
+        mfaStrategy === 'totp'
+          ? await signIn.mfa.verifyTOTP({ code: code.trim() })
+          : await signIn.mfa.verifyBackupCode({ code: code.trim() })
+
+      if (result.error) {
+        setAlert({
+          title: 'Verification failed',
+          message: result.error.longMessage ?? result.error.message ?? 'Check the code and try again.',
+        })
+        return
+      }
+
+      if (signIn.status === 'complete') {
+        await finalizeSignIn()
+      }
+    },
+    [finalizeSignIn, mfaStrategy, signIn],
+  )
+
   const resendDeviceCode = useCallback(async () => {
     setAlert(null)
-    await signIn.mfa.sendEmailCode()
-    setAlert({
-      title: 'New code sent',
-      message: 'A new verification code has been sent to your verified email address.',
-    })
+    const { error } = await signIn.mfa.sendEmailCode()
+
+    setAlert(
+      error
+        ? { title: 'Code not sent', message: error.longMessage ?? error.message }
+        : { title: 'New code sent', message: 'A fresh verification code has been sent to your email address.' },
+    )
   }, [signIn])
 
   const restart = useCallback(() => {
@@ -147,12 +190,15 @@ export function useLogin() {
     clearAlert: () => setAlert(null),
     emailError: errors.fields.identifier?.message,
     isSubmitting: fetchStatus === 'fetching',
+    mfaStrategy,
     passwordError: errors.fields.password?.message,
     resendDeviceCode,
     restart,
+    setMfaStrategy,
     step,
     submitCredentials,
     verificationError: errors.fields.code?.message,
     verifyDevice,
+    verifyMfa,
   }
 }
