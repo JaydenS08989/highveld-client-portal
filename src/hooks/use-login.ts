@@ -20,6 +20,7 @@ export function useLogin() {
   const router = useRouter()
   const { errors, fetchStatus, signIn } = useSignIn()
   const [alert, setAlert] = useState<LoginAlert | null>(null)
+  const [availableMfaStrategies, setAvailableMfaStrategies] = useState<MfaStrategy[]>([])
   const [mfaStrategy, setMfaStrategy] = useState<MfaStrategy>('totp')
   const [step, setStep] = useState<LoginStep>('credentials')
 
@@ -111,7 +112,13 @@ export function useLogin() {
           return
         }
 
-        setMfaStrategy(supportsTotp ? 'totp' : 'backup_code')
+        const strategies: MfaStrategy[] = [
+          ...(supportsTotp ? (['totp'] as MfaStrategy[]) : []),
+          ...(supportsBackupCode ? (['backup_code'] as MfaStrategy[]) : []),
+        ]
+
+        setAvailableMfaStrategies(strategies)
+        setMfaStrategy(strategies[0])
         setStep('mfa')
         return
       }
@@ -187,6 +194,7 @@ export function useLogin() {
 
   return {
     alert,
+    availableMfaStrategies,
     clearAlert: () => setAlert(null),
     emailError: errors.fields.identifier?.message,
     isSubmitting: fetchStatus === 'fetching',
