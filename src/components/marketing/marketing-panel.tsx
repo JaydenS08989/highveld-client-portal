@@ -5,7 +5,7 @@ const imageUrl =
 
 export function MarketingPanel() {
   return (
-    <div className="relative flex min-h-full w-full overflow-hidden bg-brand-50">
+    <div className="relative flex min-h-64 w-full overflow-hidden bg-brand-50 lg:min-h-screen">
       <Image
         alt="Corporate building in Johannesburg beneath a clear blue sky"
         className="object-cover object-center"
