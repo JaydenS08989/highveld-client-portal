@@ -16,6 +16,7 @@ export function LoginForm() {
   const [verificationCode, setVerificationCode] = useState('')
   const {
     alert,
+    availableMfaStrategies,
     clearAlert,
     emailError,
     isSubmitting,
@@ -152,13 +153,15 @@ export function LoginForm() {
             >
               Verify and continue
             </Button>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <Button
-                onClick={() => setMfaStrategy(mfaStrategy === 'totp' ? 'backup_code' : 'totp')}
-                variant="secondary"
-              >
-                Use {mfaStrategy === 'totp' ? 'backup code' : 'authenticator'}
-              </Button>
+            <div className={`grid grid-cols-1 gap-2 ${availableMfaStrategies.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+              {availableMfaStrategies.length > 1 && (
+                <Button
+                  onClick={() => setMfaStrategy(mfaStrategy === 'totp' ? 'backup_code' : 'totp')}
+                  variant="secondary"
+                >
+                  Use {mfaStrategy === 'totp' ? 'backup code' : 'authenticator'}
+                </Button>
+              )}
               <Button onClick={restart} variant="ghost">
                 Start over
               </Button>
