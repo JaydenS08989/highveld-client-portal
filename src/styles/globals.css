@@ -2,17 +2,17 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-brand-50: #eff8ff;
-  --color-brand-100: #dbeeff;
-  --color-brand-200: #bfe2ff;
-  --color-brand-300: #93d0ff;
-  --color-brand-400: #60b4fa;
-  --color-brand-500: #3b9ae8;
-  --color-brand-600: #237cc8;
-  --color-brand-700: #1f63a2;
-  --color-brand-800: #205486;
-  --color-brand-900: #1f476f;
-  --color-brand-950: #152e49;
+  --color-brand-50: #eef9ff;
+  --color-brand-100: #d9f1ff;
+  --color-brand-200: #bce7ff;
+  --color-brand-300: #8ed9ff;
+  --color-brand-400: #55c3ff;
+  --color-brand-500: #2da8f4;
+  --color-brand-600: #1688d7;
+  --color-brand-700: #166daf;
+  --color-brand-800: #195c8d;
+  --color-brand-900: #194e74;
+  --color-brand-950: #113149;
 }
 
 @layer base {
@@ -39,8 +39,14 @@
   }
 
   button,
-  input {
+  input,
+  select,
+  textarea {
     font: inherit;
+  }
+
+  button {
+    border: 0 !important;
   }
 
   button,
@@ -54,7 +60,7 @@
   }
 
   ::selection {
-    background: #bfe2ff;
-    color: #152e49;
+    background: #bce7ff;
+    color: #113149;
   }
 }
